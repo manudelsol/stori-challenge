@@ -9,8 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func ReadCSVFromS3(ctx context.Context, bucket, key string) (*csv.Reader, error) {
+func ReadCSVFromS3(ctx context.Context, bucket, key string) ([][]string, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg.Region = "us-east-1"
 	if err != nil {
 		return nil, fmt.Errorf("unable to load SDK config, %v", err)
 	}
@@ -22,10 +23,11 @@ func ReadCSVFromS3(ctx context.Context, bucket, key string) (*csv.Reader, error)
 	if err != nil {
 		return nil, fmt.Errorf("unable to download item, %v", err)
 	}
+	defer resp.Body.Close()
 
-	csvReader := csv.NewReader(resp.Body)
+	rows, err := csv.NewReader(resp.Body).ReadAll()
 	if err != nil {
 		return nil, err
 	}
-	return csvReader, nil
+	return rows, nil
 }
