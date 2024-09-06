@@ -26,3 +26,9 @@ go.work.sum
 
 
 .idea
+
+# go compiled executable for lambda
+bootstrap
+
+# zip for the lambda
+myFunction.zip
