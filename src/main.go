@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"stori-challenge/src/db"
 	"stori-challenge/src/s3"
 )
 
@@ -19,7 +20,15 @@ func handleRequest(event *MyEvent) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(rows)
+	data := db.TxData{
+		Email: event.Email,
+		Rows:  rows[1:], // because the first row has the column names
+	}
+
+	err = db.InsertData(ctx, data)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
