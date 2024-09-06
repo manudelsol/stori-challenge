@@ -7,12 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"os"
 )
 
 func ReadCSVFromS3(ctx context.Context, bucket, key string) ([][]string, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
-	cfg.Region = os.Getenv("AWS_REGION")
 	if err != nil {
 		return nil, fmt.Errorf("unable to load SDK config, %v", err)
 	}
