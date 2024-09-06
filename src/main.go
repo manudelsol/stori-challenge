@@ -3,8 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"stori-challenge/src/db"
+	"stori-challenge/src/email"
 	"stori-challenge/src/s3"
+	"stori-challenge/src/utils"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyEvent struct {
@@ -20,12 +25,33 @@ func handleRequest(event *MyEvent) error {
 		fmt.Println(err)
 		return err
 	}
-	data := db.TxData{
-		Email: event.Email,
-		Rows:  rows[1:], // because the first row has the column names
+
+	conn, err := db.ConnectDB(ctx)
+	tx, err := conn.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	varMap, balance, txCount, err := utils.ProcessRecords(rows[1:])
+
+	destId := new(int64)
+	err = db.CreateAccount(ctx, event.Email, balance, txCount, destId, tx)
+	if err != nil {
+		return err
 	}
 
-	err = db.InsertData(ctx, data)
+	err = db.CreateTxs(ctx, rows[1:], destId, tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = email.SendEmail(event.Email, varMap)
 	if err != nil {
 		return err
 	}
@@ -34,11 +60,6 @@ func handleRequest(event *MyEvent) error {
 }
 
 func main() {
-	// Start the Lambda handler
-	//lambda.Start(handleRequest)
-	handleRequest(&MyEvent{
-		Bucket: "manubucket-demo-s3",
-		Key:    "txns.csv",
-		Email:  "",
-	})
+	//Start the Lambda handler
+	lambda.Start(handleRequest)
 }
