@@ -1,6 +1,6 @@
 # CSV Processing Project for Stori Challenge
 
-## Overview
+## Overview & Features
 
 This project implements a Lambda function (`storiLambda`) that:
 
@@ -58,13 +58,6 @@ The project uses PostgreSQL to store account and transaction information. The ta
 | created_at  | date      | Date of the transaction.              |
 | tx          | varchar   | Transaction details (credit or debit).|
 | account_id  | int       | Foreign key referencing the `accounts` table. |
-
-### Features
-
-- Downloads a CSV from S3.
-- Processes transactions by month and type (credit/debit).
-- Stores account and transaction data in a PostgreSQL database.
-- Sends an email summary to the user using Mailjet.
 
 ---
 
